@@ -1,0 +1,46 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Python tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Packaging artifacts
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Editor and OS files
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+*.bak
+*.backup
+
+# Runtime artifacts
+*.log
+
+# Experiment-generated heavy artifacts (never committed)
+results/
+logs/
+
+# Vendored benchmark data (downloaded separately; see README)
+Benchmark/natural-plan/
+Benchmark/OlympiadBench/
+Benchmark/TableBench-main/
+Benchmark/REALM-Bench/
+Benchmark/*.zip
