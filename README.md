@@ -113,7 +113,7 @@ python scripts/multiseed.py --benchmark naturalplan --seeds 42 123 456
 
 All scripts write results to `results/` (created automatically).
 
-> **Note on baselines.** The comparison baselines (CoT, SC, static pool, static DAG, workflow, random evolution) in the main table are implemented in `sero/baselines/` and dispatched through `scripts/evaluate.py --system <name>`. They are kept in this repository for completeness but are not required to reproduce the SERO row.
+> **Note on baselines.** The comparison baselines (CoT, SC, Static DAG MAS, Static Role Orchestration, Workflow, Random Role Evolution) in the main table are implemented in `sero/baselines/` and dispatched through `scripts/evaluate.py --system <name>`. They are kept in this repository for completeness but are not required to reproduce the SERO row.
 
 ---
 
@@ -144,7 +144,7 @@ sero/
 ├── executor.py            Role-card editor (ADD / REMOVE / NOOP) with format inheritance
 ├── openrouter_client.py   OpenAI-compatible API wrapper (timeout-safe)
 ├── benchmarks/            Task adapters + scoring utilities
-└── baselines/             CoT, SC, static pool, static DAG, workflow, random evolution
+└── baselines/             CoT, SC, Static DAG MAS, Static Role Orchestration, Workflow, Random Role Evolution
 scripts/                   Entry points: train / evaluate / ablation / multiseed / full run
 Benchmark/                 Bundled train_split.json (datasets downloaded separately)
 assets/                    Main-results table figure

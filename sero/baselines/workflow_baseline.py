@@ -8,7 +8,7 @@ Fixed topology (linear chain), fixed per-benchmark role pool, no evolution,
 no credit computation, no DAG construction, no role selection.
 
 Decoupled from PhaseA — reuses the lightweight DAG execution engine from
-static_dag_free.py directly.
+static_dag_mas.py directly.
 
 The key difference from SERO:
 - Fixed topology (linear chain, not credit-ranked DAG)
@@ -16,7 +16,7 @@ The key difference from SERO:
 - No controller (no RL)
 - No credit signals
 
-Compared to static_dag_free:
+Compared to static_dag_mas:
 - LINEAR chain topology (not non-linear benchmark-specific DAGs)
 - Expert-designed prompts that explicitly reference upstream agents
 - Fixed workflow definitions for naturalplan / trip / meeting / calendar / olympiadbench / tablebench
@@ -34,7 +34,7 @@ from sero.benchmarks.scoring_utils import normalize_score, is_dual_score
 from sero.role_card import RoleCard
 from sero.openrouter_client import OpenRouterClient
 from sero.config import SeroConfig
-from sero.baselines.static_dag_free import (
+from sero.baselines.static_dag_mas import (
     _execute_dag,
     _get_ground_truth,
     _extract_answer_for_benchmark,
@@ -602,7 +602,7 @@ def run_workflow_baseline(
     Run the workflow baseline on a list of tasks.
 
     Uses a fixed-order linear chain (no PhaseA, no CreditEngine, no shuffle).
-    Reuses the DAG execution engine from static_dag_free.
+    Reuses the DAG execution engine from static_dag_mas.
 
     Returns summary dict with mean_score, std_score, records.
     """

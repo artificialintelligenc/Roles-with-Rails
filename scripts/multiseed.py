@@ -121,7 +121,7 @@ def run_one_seed(args, seed: int, results_dir: str):
 
     seed_results = {}
 
-    # Single agent
+    # CoT baseline (single agent)
     import numpy as np
     records = []
     for task in eval_tasks:
@@ -138,13 +138,13 @@ def run_one_seed(args, seed: int, results_dir: str):
             )
             score = task["eval_fn"](response)
         except Exception as e:
-            logger.error("Single agent error: %s", e)
+            logger.error("CoT error: %s", e)
             score = 0.0
         records.append(score)
-    seed_results["single_agent"] = float(np.mean(records))
-    logger.info("[seed=%d] single_agent=%.3f", seed, seed_results["single_agent"])
+    seed_results["cot"] = float(np.mean(records))
+    logger.info("[seed=%d] cot=%.3f", seed, seed_results["cot"])
 
-    # Static baseline
+    # Static Role Orchestration baseline
     from sero.phase_a import PhaseA
     from sero.credit_engine import CreditEngine
     credit_engine = CreditEngine()
@@ -160,10 +160,10 @@ def run_one_seed(args, seed: int, results_dir: str):
             r = phase_a.run(task["prompt"])
             records.append(r["score"])
         except Exception as e:
-            logger.error("Static error: %s", e)
+            logger.error("Static Role Orchestration error: %s", e)
             records.append(0.0)
-    seed_results["static"] = float(np.mean(records))
-    logger.info("[seed=%d] static=%.3f", seed, seed_results["static"])
+    seed_results["static_role_orchestration"] = float(np.mean(records))
+    logger.info("[seed=%d] static_role_orchestration=%.3f", seed, seed_results["static_role_orchestration"])
 
     # Workflow baseline
     wf_summary = run_workflow_baseline(eval_tasks, benchmark_tag, client, config)
@@ -220,7 +220,7 @@ def main():
             logger.error("Seed %d failed: %s", seed, e)
 
     # Aggregate across seeds
-    systems = ["single_agent", "static", "workflow", "sero"]
+    systems = ["cot", "static_role_orchestration", "workflow", "sero"]
     summary = {}
     for system in systems:
         vals = [all_seed_results[str(s)][system]

@@ -27,18 +27,18 @@ from sero.controller import SeroController
 logger = logging.getLogger(__name__)
 
 
-def run_random_evolution(
+def run_random_role_evolution(
     config: SeroConfig,
     seed_pool: List[RoleCard],
     tasks: List[Dict[str, Any]],
     client: OpenRouterClient,
     encoder,
     results_dir: str = "results",
-    tag: str = "random_evo",
+    tag: str = "random_role_evolution",
     seed: int = 42,
 ) -> Dict[str, Any]:
     """
-    Random-evolution baseline: for each task, uniformly sample an action from
+    Random Role Evolution baseline: for each task, uniformly sample an action from
     {ADD, REMOVE, NOOP} and a random target role, then execute unconditionally.
     No before/after scoring, no performance gating.
 

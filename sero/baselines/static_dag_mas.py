@@ -1,7 +1,7 @@
 """
-Static baseline: benchmark-specific fixed-topology DAG with dedicated roles.
+Static DAG MAS baseline: benchmark-specific fixed-topology DAG with dedicated roles.
 
-The simplest non-trivial multi-agent baseline with a *structured* topology:
+A non-trivial multi-agent baseline with a *structured* topology:
   - Fixed role pool per benchmark (dedicated agents, not the shared seed pool)
   - Fixed DAG topology per benchmark (hand-crafted, non-linear)
   - No credit scoring, no role retrieval, no evolution
@@ -15,9 +15,9 @@ Each benchmark has a unique topology reflecting its problem structure:
     olympiadbench — concept analysis → parallel dual-strategy solving → cross-checking
 
 Compared to other baselines:
-  Workflow   — expert-designed LINEAR chain, NaturalPlan only
-  Static-DAG — uses credit mechanism + DAG ranking, no evolution
-  Static     — NO credit, NO ranking, benchmark-specific fixed DAG   ← this file
+  Workflow                   — expert-designed LINEAR chain
+  Static Role Orchestration  — frozen seed pool + credit-ranked DAG, no evolution
+  Static DAG MAS             — NO credit, NO ranking, benchmark-specific fixed DAG   ← this file
 """
 
 import logging
@@ -1092,14 +1092,14 @@ def _extract_ground_truth_for_benchmark(task: Dict[str, Any], benchmark: str) ->
 # Public entry point
 # ═══════════════════════════════════════════════════════════════════════════════
 
-def run_static_dag_free(
+def run_static_dag_mas(
     tasks: List[Dict[str, Any]],
     benchmark: str,
     client: OpenRouterClient,
     config: SeroConfig,
 ) -> Dict[str, Any]:
     """
-    Evaluate the static fixed-topology DAG baseline on a list of tasks.
+    Evaluate the Static DAG MAS baseline on a list of tasks.
 
     Each benchmark uses a hand-crafted non-linear DAG with dedicated roles.
     No credit mechanism, no role retrieval, no evolution.
@@ -1151,7 +1151,7 @@ def run_static_dag_free(
 
     scores = [r["score"] for r in records]
     result = {
-        "system": "static",
+        "system": "static_dag_mas",
         "benchmark": benchmark,
         "n_tasks": len(scores),
         "mean_score": float(np.mean(scores)),

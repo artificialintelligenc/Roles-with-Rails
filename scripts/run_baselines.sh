@@ -3,7 +3,7 @@
 # Baseline Evaluation Script — 正式实验用
 #
 # 支持除 sero 以外的所有 baseline:
-#   cot, sc, static, static_dag, workflow, random_evo
+#   cot, sc, static_dag_mas, static_role_orchestration, workflow, random_role_evolution
 #
 # 评测集模式:
 #   1. EVAL_SET=subset        → train_split.json 中固定的分层子集 (naturalplan=300, 其他=100)
@@ -24,7 +24,7 @@
 #   EVAL_SET=heldout EVAL_TASKS=0 bash scripts/run_baselines.sh trip "cot sc"
 #
 #   # 100 样本分层子集
-#   EVAL_SET=subset bash scripts/run_baselines.sh trip "cot sc static static_dag workflow"
+#   EVAL_SET=subset bash scripts/run_baselines.sh trip "cot sc static_dag_mas static_role_orchestration workflow"
 #
 #   # 原始 Natural Plan 全量测试集
 #   EVAL_SET=natural_full EVAL_TASKS=0 bash scripts/run_baselines.sh trip "cot sc"
@@ -63,7 +63,7 @@ SC_K="${SC_K:-3}"                      # SC 投票采样数
 SEED="${SEED:-42}"
 SUFFIX="${SUFFIX:-_baseline}"
 
-# random_evo 训练参数 (与 trial_run.sh 一致, 但 epoch 更大)
+# random_role_evolution 训练参数 (与 trial_run.sh 一致, 但 epoch 更大)
 TRAIN_TASKS="${TRAIN_TASKS:-}"
 WARMUP_EPOCHS="${RE_WARMUP:-1}"
 MAIN_EPOCHS="${RE_MAIN:-2}"
@@ -79,7 +79,7 @@ EXPLORATION_GAMMA=0.1
 
 # ── Benchmark / System ───────────────────────────────────────────────────────
 ALL_BENCHMARKS=("naturalplan" "trip" "meeting" "calendar" "olympiadbench" "tablebench")
-ALL_SYSTEMS=("cot" "sc" "static" "static_dag" "workflow" "random_evo")
+ALL_SYSTEMS=("cot" "sc" "static_dag_mas" "static_role_orchestration" "workflow" "random_role_evolution")
 
 if [[ $# -ge 1 ]]; then
     BENCHMARKS=("$1")
@@ -202,12 +202,12 @@ for bench in "${BENCHMARKS[@]}"; do
             CMD+=(--sc_k "$SC_K")
         fi
 
-        if [[ "$EVAL_SET" == "natural_full" && "$sys" == "random_evo" ]]; then
+        if [[ "$EVAL_SET" == "natural_full" && "$sys" == "random_role_evolution" ]]; then
             echo "WARN: ${bench} × ${sys} 将在原始 Natural Plan 全量集上评测, 结果包含训练任务。"
         fi
 
-        # random_evo 需要训练参数
-        if [[ "$sys" == "random_evo" ]]; then
+        # random_role_evolution 需要训练参数
+        if [[ "$sys" == "random_role_evolution" ]]; then
             CMD+=(
                 --tasks "$EFFECTIVE_TRAIN_TASKS"
                 --warmup_epochs "$WARMUP_EPOCHS"

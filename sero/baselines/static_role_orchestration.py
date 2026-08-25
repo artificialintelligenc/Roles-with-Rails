@@ -1,8 +1,9 @@
 """
-Static-seed baseline: use the fixed seed role pool without evolution.
+Static Role Orchestration baseline: use the fixed seed role pool without evolution.
 
 Evaluates performance using only the initial seed roles (no ADD/REMOVE/NOOP
-controller actions). Serves as the "no evolution" ablation / lower-bound baseline.
+controller actions). Keeps SERO's seed pool and the same retrieval-and-DAG
+inference pipeline but freezes the role pool.
 """
 
 import json
@@ -22,17 +23,18 @@ from sero.benchmarks.scoring_utils import is_dual_score
 logger = logging.getLogger(__name__)
 
 
-def run_static_baseline(
+def run_static_role_orchestration(
     config: SeroConfig,
     seed_pool: List[RoleCard],
     tasks: List[Dict[str, Any]],
     client: OpenRouterClient,
     encoder,
     results_dir: str = "results",
-    tag: str = "static",
+    tag: str = "static_role_orchestration",
 ) -> Dict[str, Any]:
     """
-    Evaluate the static seed pool on all tasks without any evolution.
+    Evaluate the Static Role Orchestration baseline: the fixed seed pool runs
+    through SERO's retrieval-and-DAG inference pipeline with no evolution.
 
     Returns summary dict with per-task scores and aggregate stats.
     """
@@ -58,7 +60,7 @@ def run_static_baseline(
             score = result["score"]
             raw_score = result.get("raw_score", score)
         except Exception as e:
-            logger.error("Static baseline error on task %s: %s", task["id"], e)
+            logger.error("Static Role Orchestration error on task %s: %s", task["id"], e)
             score = 0.0
             raw_score = 0.0
 
@@ -91,6 +93,6 @@ def run_static_baseline(
     out_path = os.path.join(results_dir, f"{tag}_results.json")
     with open(out_path, "w") as f:
         json.dump(summary, f, indent=2)
-    logger.info("Static baseline results saved: %s  mean=%.3f", out_path, summary["mean_score"])
+    logger.info("Static Role Orchestration results saved: %s  mean=%.3f", out_path, summary["mean_score"])
 
     return summary

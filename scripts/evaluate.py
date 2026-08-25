@@ -2,16 +2,16 @@
 Single-system evaluation for SERO benchmarks.
 
 Evaluate one system at a time on a specified benchmark.
-Systems: cot | sc | static | static_dag | workflow | random_evo | sero
+Systems: cot | sc | static_dag_mas | static_role_orchestration | workflow | random_role_evolution | sero
 
 Usage:
     export OPENROUTER_API_KEY="your-key"
     python scripts/evaluate.py --system cot --benchmark trip --eval_tasks 15
     python scripts/evaluate.py --system sc --benchmark trip --eval_tasks 15
-    python scripts/evaluate.py --system static --benchmark trip --eval_tasks 15
-    python scripts/evaluate.py --system static_dag --benchmark trip --eval_tasks 15
+    python scripts/evaluate.py --system static_dag_mas --benchmark trip --eval_tasks 15
+    python scripts/evaluate.py --system static_role_orchestration --benchmark trip --eval_tasks 15
     python scripts/evaluate.py --system workflow --benchmark trip --eval_tasks 15
-    python scripts/evaluate.py --system random_evo --benchmark trip --tasks 20 --eval_tasks 15
+    python scripts/evaluate.py --system random_role_evolution --benchmark trip --tasks 20 --eval_tasks 15
     python scripts/evaluate.py --system sero --benchmark trip --tasks 20 --eval_tasks 15
     python scripts/evaluate.py --system sero --benchmark trip --eval_tasks 15 --checkpoint path/to/ckpt.pt
 
@@ -62,12 +62,12 @@ def parse_args():
     p = argparse.ArgumentParser(description="Evaluate a single system on a SERO benchmark.")
     default_config = SeroConfig()
     p.add_argument("--system", required=True,
-                   choices=["cot", "sc", "static", "static_dag", "workflow", "random_evo", "sero"],
+                   choices=["cot", "sc", "static_dag_mas", "static_role_orchestration", "workflow", "random_role_evolution", "sero"],
                    help="System to evaluate")
     p.add_argument("--benchmark", required=True,
                    choices=BENCHMARK_CHOICES)
     p.add_argument("--tasks", type=int, default=20,
-                   help="Training tasks (used by random_evo and sero)")
+                   help="Training tasks (used by random_role_evolution and sero)")
     p.add_argument("--eval_tasks", type=int, default=15, help="Evaluation tasks")
     p.add_argument("--sc_k", type=int, default=3, help="SC sampling count")
     p.add_argument("--warmup_epochs", type=int, default=1)
@@ -151,7 +151,7 @@ def parse_args():
                    help="Disable controller REINFORCE loss / backward while keeping the rest of SERO active")
     p.add_argument("--use_split", action="store_true",
                     help="Use train_split.json for train/eval separation. "
-                        "Training systems (sero, random_evo) get the benchmark's fixed train keys; "
+                        "Training systems (sero, random_role_evolution) get the benchmark's fixed train keys; "
                         "supported benchmarks' eval uses the split-defined heldout/subset keys.")
     p.add_argument("--eval_subset", action="store_true",
                    help="Use the pre-sampled 100-task stratified eval subset instead of "
@@ -910,15 +910,15 @@ def eval_sc(eval_tasks, client, config, sa_system, benchmark, k=3):
     _add_dual_metrics(result, records)
     return result
 
-def eval_static(eval_tasks, benchmark, client, config):
-    """Static baseline — benchmark-specific fixed-topology DAG, no credit, no evolution."""
-    from sero.baselines.static_dag_free import run_static_dag_free
-    return run_static_dag_free(eval_tasks, benchmark, client, config)
+def eval_static_dag_mas(eval_tasks, benchmark, client, config):
+    """Static DAG MAS baseline — benchmark-specific fixed-topology DAG, no credit, no evolution."""
+    from sero.baselines.static_dag_mas import run_static_dag_mas
+    return run_static_dag_mas(eval_tasks, benchmark, client, config)
 
 
-def eval_static_dag(eval_tasks, seed_pool, client, encoder, config,
+def eval_static_role_orchestration(eval_tasks, seed_pool, client, encoder, config,
                     benchmark=None):
-    """Static-DAG ablation — credit mechanism + DAG, no role pool evolution."""
+    """Static Role Orchestration baseline — frozen seed pool through SERO's credit-ranked DAG, no evolution."""
     import numpy as np
     from sero.credit_engine import CreditEngine
     from sero.phase_a import PhaseA
@@ -1021,7 +1021,7 @@ def eval_static_dag(eval_tasks, seed_pool, client, encoder, config,
 
     scores = [r["score"] for r in records]
     result = {
-        "system": "static_dag", "n_tasks": len(scores),
+        "system": "static_role_orchestration", "n_tasks": len(scores),
         "mean_score": float(np.mean(scores)),
         "std_score": float(np.std(scores)),
         "pool": [r.to_dict() for r in seed_pool],
@@ -1046,7 +1046,7 @@ def eval_workflow(eval_tasks, benchmark, client, encoder, config):
     return run_workflow_baseline(eval_tasks, benchmark, client, config)
 
 
-def eval_random_evo(train_tasks, eval_tasks, seed_pool, client, encoder, config,
+def eval_random_role_evolution(train_tasks, eval_tasks, seed_pool, client, encoder, config,
                     benchmark=None):
     """Random evolution: unconditional random actions on train_tasks, then frozen-eval.
 
@@ -1280,7 +1280,7 @@ def eval_random_evo(train_tasks, eval_tasks, seed_pool, client, encoder, config,
 
     eval_scores = [r["score"] for r in eval_records]
     result = {
-        "system": "random_evo", "n_tasks": len(eval_scores),
+        "system": "random_role_evolution", "n_tasks": len(eval_scores),
         "mean_score": float(np.mean(eval_scores)),
         "std_score": float(np.std(eval_scores)),
         "seed_pool": [r.to_dict() for r in seed_pool],
@@ -1679,7 +1679,7 @@ def main():
             )
         )
 
-    needs_train = args.system in ("random_evo", "sero") and args.checkpoint is None
+    needs_train = args.system in ("random_role_evolution", "sero") and args.checkpoint is None
     try:
         eval_set = _resolve_eval_set(args)
     except ValueError as exc:
@@ -1827,7 +1827,7 @@ def main():
 
     # Load encoder only for systems that need it
     encoder = None
-    if args.system in ("static_dag", "random_evo", "sero"):
+    if args.system in ("static_role_orchestration", "random_role_evolution", "sero"):
         from sentence_transformers import SentenceTransformer
         logger.info("Loading encoder: %s", config.encoder_model)
         encoder = SentenceTransformer(config.encoder_model, trust_remote_code=True)
@@ -1839,15 +1839,15 @@ def main():
     elif system == "sc":
         result = eval_sc(eval_tasks, client, config, sa_system,
                          args.benchmark, k=args.sc_k)
-    elif system == "static":
-        result = eval_static(eval_tasks, args.benchmark, client, config)
-    elif system == "static_dag":
-        result = eval_static_dag(eval_tasks, seed_pool, client, encoder, config,
+    elif system == "static_dag_mas":
+        result = eval_static_dag_mas(eval_tasks, args.benchmark, client, config)
+    elif system == "static_role_orchestration":
+        result = eval_static_role_orchestration(eval_tasks, seed_pool, client, encoder, config,
                                 benchmark=args.benchmark)
     elif system == "workflow":
         result = eval_workflow(eval_tasks, args.benchmark, client, encoder, config)
-    elif system == "random_evo":
-        result = eval_random_evo(train_tasks, eval_tasks, seed_pool,
+    elif system == "random_role_evolution":
+        result = eval_random_role_evolution(train_tasks, eval_tasks, seed_pool,
                                  client, encoder, config, benchmark=args.benchmark)
     elif system == "sero":
         result = eval_sero(train_tasks, eval_tasks, seed_pool, client, encoder,
